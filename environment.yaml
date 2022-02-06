@@ -1,0 +1,11 @@
+name: oakd-dashboard
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - dash=2.1.0
+  - plotly=5.5.0
+  - pandas=1.4.0
+  - pip:
+    - python-dotenv
