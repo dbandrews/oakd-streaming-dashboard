@@ -11,73 +11,83 @@ from dotenv import load_dotenv
 
 
 def get_detections(num_detections):
-    # HOST, PORT = os.environ["TCP_HOST"], os.environ["TCP_PORT"]
+    HOST, PORT = os.environ["TCP_HOST"], int(os.environ["TCP_PORT"])
     # HOST, PORT = "192.168.0.13", 8070
     # Create a socket (SOCK_STREAM means a TCP socket)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         # Connect to server and get header data
         sock.connect((HOST, PORT))
-        header = str(sock.recv(1024), "utf-8")
-        detections = []
-        for i in range(num_detections):
-            detections.append(str(sock.recv(1024), "utf-8").strip().split(","))
+        detections = str(sock.recv(1024 * num_detections), "utf-8")
+        detections_out = detections.split("\r\n")
+        detections_out = [x.split(",") for x in detections_out]
+        # detections.append(str(sock.recv(1024), "utf-8").strip().split(","))
 
     # detections = [
     #     ["chair", "95%", 1, 1, 1],
     #     ["cat", "95%", 1, 1, 1],
     #     ["dog", "95%", 1, 1, 1],
     # ]
-    print(detections)
+    # print(detections)
 
-    return pd.DataFrame(data=detections, columns=["class", "confidence", "x", "y", "z"])
+    return pd.DataFrame(
+        data=detections_out, columns=["class", "confidence", "x", "y", "z"]
+    )
 
 
-app = dash.Dash()
+app = dash.Dash(__name__, update_title=None)
 
 app.layout = html.Div(
     [
         html.H1("3D Object Detection Stream"),
-        dcc.Graph(id="detections"),
-        dcc.Interval(id="my-interval", interval=1000),
+        dcc.Graph(
+            id="detections",
+            figure={
+                "layout": {
+                    "title": "Object Detections in 3D",
+                    "barmode": "overlay",
+                    "margin": dict(l=10, r=10, b=10, t=10),
+                    "size": dict(width=1000, height=1000),
+                    "uirevision": True,
+                },
+                "data": [
+                    {
+                        "x": [],
+                        "y": [],
+                        "z": [],
+                        "marker": {"color": []},
+                        "mode": "markers",
+                        "type": "scatter3d",
+                    }
+                ],
+            },
+        ),
+        dcc.Interval(id="my-interval", interval=100),
     ]
 )
 
 
-@app.callback(Output("detections", "figure"), [Input("my-interval", "n_intervals")])
+@app.callback(Output("detections", "extendData"), [Input("my-interval", "n_intervals")])
 def display_output(n):
 
     # Get detections
     detections = get_detections(1)
 
-    # Create figure
-    # Create the graph with subplots
-    fig = plotly.subplots.make_subplots(rows=2, cols=1, vertical_spacing=0.2)
-    fig["layout"]["margin"] = {"l": 30, "r": 10, "b": 30, "t": 10}
-    fig["layout"]["legend"] = {"x": 0, "y": 1, "xanchor": "left"}
-
-    fig.append_trace(
+    # return new data
+    return (
         {
-            "x": detections["class"],
-            # "y": data["Altitude"],
-            "name": "Classes",
-            # "mode": "lines+markers",
-            "type": "bar",
+            "marker.color": [detections["class"].to_list()],
+            "x": [
+                detections["x"].to_list(),
+            ],
+            "y": [
+                detections["y"].to_list(),
+            ],
+            "z": [
+                detections["z"].to_list(),
+            ],
         },
-        1,
-        1,
-    )
-    fig.append_trace(
-        {
-            "x": detections["x"],
-            "y": detections["y"],
-            # "z": detections["z"],
-            "text": detections["class"],
-            "name": "3D Points",
-            "mode": "markers",
-            "type": "scatter",
-        },
-        2,
-        1,
+        [0],
+        100,  # Max number of detections
     )
 
     return fig
