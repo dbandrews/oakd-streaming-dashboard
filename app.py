@@ -13,17 +13,16 @@ from dotenv import load_dotenv
 
 def get_detections(num_detections):
     HOST, PORT = os.environ["TCP_HOST"], int(os.environ["TCP_PORT"])
-    # HOST, PORT = "192.168.0.13", 8070
     # Create a socket (SOCK_STREAM means a TCP socket)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         # Connect to server and get header data
         sock.connect((HOST, PORT))
         detections = str(sock.recv(1024 * num_detections), "utf-8")
         detections_out = detections.split("\r\n")
-        detections_out = [x.split(",") for x in detections_out]
+        detections_out = [x.split(",") for x in detections_out][0]
 
     return pd.DataFrame(
-        data=detections_out, columns=["class", "confidence", "x", "y", "z"]
+        data=[detections_out], columns=["class", "confidence", "x", "y", "z"]
     )
 
 
@@ -52,7 +51,7 @@ app.layout = html.Div(
                             "color": [],
                             "size": 10,
                             "colorbar": {"title": "Class"},
-                            "colorscale": "Viridis",
+                            # "colorscale": "Viridis",
                         },
                         "mode": "markers",
                         "type": "scatter3d",
@@ -66,27 +65,27 @@ app.layout = html.Div(
 
 # Setup for MobileNet class color scheme
 colors = [
-    "DarkOrange",  # FF8C00	255, 140, 0
-    "DarkOrchid",  # 9932CC	153, 50, 204
-    "DarkRed",  # 8B0000	139, 0, 0
-    "DarkSalmon",  # E9967A	233, 150, 122
-    "DarkSeaGreen",  # 8FBC8F	143, 188, 143
-    "DarkSlateBlue",  # 483D8B	72, 61, 139
-    "DarkSlateGray",  # 2F4F4F	47, 79, 79
-    "DarkSlateGrey",  # 2F4F4F	47, 79, 79
-    "DarkTurquoise",  # 00CED1	0, 206, 209
-    "DarkViolet",  # 9400D3	148, 0, 211
-    "DeepPink",  # FF1493	255, 20, 147
-    "DeepSkyBlue",  # 00BFFF	0, 191, 255
-    "DimGray",  # 696969	105, 105, 105
-    "DodgerBlue",  # 1E90FF	30, 144, 255
-    "FireBrick",  # B22222	178, 34, 34
-    "FloralWhite",  # FFFAF0	255, 250, 240
-    "ForestGreen",  # 228B22	34, 139, 34
-    "Fuchsia",  # FF00FF	255, 0, 255
-    "Gainsboro",
-    "Gold",
-    "GoldenRod",
+    "darkorange",  # ff8c00	255, 140, 0
+    "darkorchid",  # 9932cc	153, 50, 204
+    "darkred",  # 8b0000	139, 0, 0
+    "darksalmon",  # e9967a	233, 150, 122
+    "darkseagreen",  # 8fbc8f	143, 188, 143
+    "darkslateblue",  # 483d8b	72, 61, 139
+    "darkslategray",  # 2f4f4f	47, 79, 79
+    "darkslategrey",  # 2f4f4f	47, 79, 79
+    "darkturquoise",  # 00ced1	0, 206, 209
+    "darkviolet",  # 9400d3	148, 0, 211
+    "deeppink",  # ff1493	255, 20, 147
+    "deepskyblue",  # 00bfff	0, 191, 255
+    "dimgray",  # 696969	105, 105, 105
+    "dodgerblue",  # 1e90ff	30, 144, 255
+    "firebrick",  # b22222	178, 34, 34
+    "hotpink",  # fffaf0	255, 250, 240
+    "forestgreen",  # 228b22	34, 139, 34
+    "fuchsia",  # ff00ff	255, 0, 255
+    "gainsboro",
+    "gold",
+    "goldenrod",
 ]
 
 # MobilenetSSD label texts
@@ -126,16 +125,13 @@ def display_output(n):
     # return new data
     return (
         {
-            "marker.color": [detections["class"].to_list()],
             "marker.color": [
                 [
-                    color_lookup[x] if x != "" else "black"
+                    color_lookup[x]  # if x != "" else "black"
                     for x in detections["class"].to_list()
                 ]
             ],
-            "text": [
-                detections["class"].to_list(),
-            ],
+            "text": [detections["class"].to_list()],
             "x": [
                 detections["x"].to_list(),
             ],
@@ -147,7 +143,7 @@ def display_output(n):
             ],
         },
         [0],
-        10000,  # Max number of detections
+        100,  # Max number of detections
     )
 
     return fig
