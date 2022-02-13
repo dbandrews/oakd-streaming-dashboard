@@ -6,6 +6,8 @@ For use with [`oakd-streaming`](https://github.com/dbandrews/oakd-streaming). Re
 
 ## Demo
 
+**Must be opened with Microsoft Edge for video feed to work due to MJPEG streaming**
+
 ![demo](/visuals/oakd.gif)
 
 ## Setup
@@ -34,6 +36,13 @@ Run with:
 conda activate oakd-dashboard
 python app.py
 ```
+
+To check the output from the TCP client that is streaming detections (once you've setup with `oakd-stream`), you can use:
+
+```
+python demo_server.py
+```
+
 
 ## Limitations/Improvements Needed
 
