@@ -2,7 +2,7 @@
 
 A Dash app for streaming detections from an OpenCV OAKD spatial AI camera. 
 
-For use with [`oakd-streaming`](https://github.com/dbandrews/oakd-streaming).
+For use with [`oakd-streaming`](https://github.com/dbandrews/oakd-streaming). Relies on HTTP server streaming the video feed, and a TCP server streaming the detected classes and coordinates. See the repo for more details.
 
 ## Demo
 
